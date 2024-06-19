@@ -60,7 +60,7 @@ make doc
 
 ## 参考资料
 
-- 本项目 LaTeX3，因此可以参考的手册包括 expl3 的文档。
+- 本项目 LaTeX3，因此可以参考的手册包括 [expl3 的文档](https://www.latex-project.org/help/documentation/)。
 - [fduthesis 项目代码](https://github.com/stone-zeng/fduthesis)有很多最佳实践，可以参考。
 - 样式部分，应该参考研究生院和教务部的相关文件和通知。
 
@@ -78,10 +78,13 @@ make doc
 ## 打包
 
 - `make overleaf version=X.X.X` 可以生成上传 overleaf 所需要的 zip 文件。
-- `make pkg` 可以生成上传 CTAN 所需要的 zip 文件。
+- `make pkg` 可以生成上传 CTAN 所需要的 zip 文件。若已有手册而不想重新编译，可 `make pkg-only`。（同样被用于 GitHub Actions）
 - `make grad version=X.X.X` 可以生成用作研究生院官网附件的 zip 文件。
 
 ## 上传 Overleaf 与更新
+
+> [!NOTE]
+> Overleaf 链接已利用 [`overleaf.com/docs` API](https://www.overleaf.com/devs) 自动指向最新发布版，不再需要手动更新。
 
 首先运行 `make overleaf` 打包文件。
 
@@ -98,3 +101,5 @@ make doc
 版本号：参考 [Semantic Versioning 2.0.0 | Semantic Versioning](https://semver.org/) 。
 
 ![Release Workflow](./assets/release_workflow.png)
+
+上周展示了完整工作流，其中大部分已自动化，只需要手动触发。

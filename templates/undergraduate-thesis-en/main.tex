@@ -23,6 +23,9 @@
 % !TeX program = xelatex
 % !BIB program = biber
 
+
+% 开启盲审格式 blindPeerReview=true (如：[type=bachelor_english,blindPeerReview=true])
+
 \documentclass[type=bachelor_english]{bithesis}
 
 % 此处仅列出常用的配置。全部配置用法请见「bithesis.pdf」手册。
@@ -32,8 +35,6 @@
     headerImage = images/header.png,
     % 封面标题需要“华文细黑”，如无必要请勿修改该项。
     xiheiFont = STXIHEI.TTF,
-    % 本科生盲审要求删去封面，而不是隐藏封面信息。
-    hideCoverInPeerReview = true,
     % 修改封面日期
     % date = May 31 2023,
   },
@@ -41,13 +42,14 @@
     % 想要删除某项封面信息，直接删除该项即可。
     % 想要让某项封面信息留空（但是保留下划线），请传入空白符组成的字符串，如"{~}"。
     % 如需要换行，则用 “\\” 符号分割。
+    title = 你的论文标题（中文）,
     titleEn = Your Thesis Title,
     school = School of Mechanical Engineering,
-    major = Bechelor of Science in Mechanical Engineering,
+    major = Bachelor of Science in Mechanical Engineering,
     author = Feng Kaiyu,
     studentId = 11xxxxxxxx,
     supervisor = Alex Zhang,
-    keywords = {北京理工大学；本科生；毕业设计（论文）},
+    keywords = {北京理工大学；本科生；毕业设计（论文）——请在“main.tex”开头设置},
     keywordsEn = {Computer-Aided Design; FEM; CAM},
     % 如果你的毕设为校外毕设，请将下面这一行语句解除注释（删除第一个百分号字符）并填写你的校外毕设导师名字
     % externalSupervisor = 左偏树,
@@ -58,7 +60,11 @@
     bibliographyIndent = false,
     % 如无必要请勿修改该项。
     % head = {自定义页眉文字}
-  }
+  },
+  misc = {
+    % 微调表格行间距
+    tabularRowSeparation = 1.25,
+  },
 }
 
 % 使用 listings 宏包进行代码块使用，并使用了预定义的样式，
@@ -82,6 +88,8 @@
 % 参考文献引用文件位于 misc/ref.bib
 \addbibresource{misc/ref.bib}
 
+% 如果要按照计算机学院的要求，带有“北京理工大学”水印，请使用此 issue 提供的方法：
+% https://github.com/BITNP/BIThesis/issues/350#issuecomment-1565974141
 
 % 文档开始
 \begin{document}

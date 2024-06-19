@@ -21,10 +21,10 @@
 %<thesis>\ProvidesExplClass{bithesis}
 %<report>\ProvidesExplClass{bitreport}
 %<beamer>\ProvidesExplClass{bitbeamer}
-%<cls>{2024-03-20}{3.6.3}{BIT Thesis Templates}
+%<cls>{2024-05-30}{3.7.9}{BIT Thesis Templates}
 %
 %<*driver>
-\ProvidesFile{bithesis.dtx}[2024/03/20 3.6.3 BIT Thesis Templates]
+\ProvidesFile{bithesis.dtx}[2024/05/30 3.7.9 BIT Thesis Templates]
 \documentclass[letterpaper]{l3doc}
 \usepackage{dtx-style}
 
@@ -216,6 +216,7 @@
 %    \begin{macrocode}
 \cs_new:Npn \@@_if_thesis_int_type:nTF #1#2#3 {\int_compare:nNnTF {\g_@@_thesis_type_int} = {#1} {#2} {#3}}
 \cs_new:Npn \@@_if_thesis_int_type:nT #1#2 {\@@_if_thesis_int_type:nTF {#1} {#2} {}}
+\cs_new:Npn \__bithesis_if_thesis_int_type:nF #1#2 {\__bithesis_if_thesis_int_type:nTF {#1} {} {#2}}
 %    \end{macrocode}
 % \end{macro}
 
@@ -287,14 +288,36 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\boxempty:}
+% 空的选框。
+%    \begin{macrocode}
+\cs_new:Npn \boxempty:
+{
+  \makebox[1em][l]
+  {
+    % 为保证与打了勾的一致，也需套盒子
+    \makebox[0pt][l]
+    {
+      % 默认比基线略高，向下降降
+      \raisebox{-1pt}{$\square$}
+    }
+  }
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{\boxcheck:}
-% 标签文字之间的间距。
+% 打了勾的选框。
 %    \begin{macrocode}
 \cs_new:Npn \boxcheck:
 {
   \makebox[1em][l]
   {
-    \makebox[1pt][l]{$\boxempty$}
+    \makebox[0pt][l]
+    {
+      % 默认比基线略高，向下降降
+      \raisebox{-1pt}{$\square$}
+    }
     $\checkmark$
   }
 }
@@ -323,6 +346,9 @@
     {classification} {中图分类号：},
     {classified_level} {密级},
     {type} {种类},
+    {special_type} {特别类型},
+    {cross_research} {交叉研究方向},
+    {international_student_ugp} {政府项目留学生},
   }
   {\@@_define_label:nn #1}
 %    \end{macrocode}
@@ -402,11 +428,11 @@
   {
     {originality} {研究成果声明},
     {originality_clause} {本人郑重声明：所提交的学位论文是我本人在指导教师的指导下独立完成的研究成果。文中所撰写内容符合以下学术规范（请勾选）：
-\par $\boxcheck:$ 论文综述遵循“适当引用”的规范，全部引用的内容不超过50\%。
-\par 论文中的研究数据及结果不存在篡改、剽窃、抄袭、伪造等学术不端行为，并愿意承担因学术不端行为所带来的一切后果和法律责任。
-\par $\boxcheck:$文中依法引用他人的成果，均已做出明确标注或得到许可。
-\par $\boxcheck:$论文内容未包含法律意义上已属于他人的任何形式的研究成果，也不包含本人已用于其他学位申请的论文或成果。
-\par $\boxcheck:$与本人一同工作的合作者对此研究工作所做的任何贡献均已在学位论文中作了明确的说明并表示了谢意。
+\par \boxcheck:\hspace{0.5em} 论文综述遵循“适当引用”的规范，全部引用的内容不超过50\%。
+\par \boxcheck:\hspace{0.5em} 论文中的研究数据及结果不存在篡改、剽窃、抄袭、伪造等学术不端行为，并愿意承担因学术不端行为所带来的一切后果和法律责任。
+\par \boxcheck:\hspace{0.5em} 文中依法引用他人的成果，均已做出明确标注或得到许可。
+\par \boxcheck:\hspace{0.5em} 论文内容未包含法律意义上已属于他人的任何形式的研究成果，也不包含本人已用于其他学位申请的论文或成果。
+\par \boxcheck:\hspace{0.5em} 与本人一同工作的合作者对此研究工作所做的任何贡献均已在学位论文中作了明确的说明并表示了谢意。
 \par~特此声明。},
     {authorization} {关于学位论文使用权的说明},
     {authorization_clause} {本人完全了解北京理工大学有关保管、使用学位论文的规定，其中包括：
@@ -587,8 +613,20 @@
     underlineThickness .initial:n = {1pt},
     underlineOffset .dim_set:N = \l_@@_cover_underline_offset_dim,
     underlineOffset .initial:n = { -10pt },
-    hideCoverInPeerReview .bool_set:N = \l_@@_style_hide_cover_in_peer_review_bool,
-    hideCoverInPeerReview .initial:n = {false},
+    hideCoverInPeerReview .choice:,
+    hideCoverInPeerReview / true .code:n = { \bool_set_true:N \l_@@_cover_hide_cover_in_peer_review_bool },
+    hideCoverInPeerReview / false .code:n = { \bool_set_false:N \l_@@_cover_hide_cover_in_peer_review_bool },
+    hideCoverInPeerReview / from-thesis-type .code:n = {
+      \@@_if_graduate:TF {
+        \bool_set_false:N \l_@@_cover_hide_cover_in_peer_review_bool
+      } {
+        \bool_set_true:N \l_@@_cover_hide_cover_in_peer_review_bool
+      }
+    },
+    hideCoverInPeerReview .initial:n = {from-thesis-type},
+    % 研究生的「特殊类型」
+    showSpecialTypeBox .bool_set:N = \l_@@_cover_show_special_type_box_bool,
+    showSpecialTypeBox .initial:n = {false}
   }
 %    \end{macrocode}
 %
@@ -646,6 +684,12 @@
     defenseDateEn .initial:n = {June,~2019~(example)},
     % 因为默认不显示，所以不需要设置初始值。
     classifiedLevel .tl_set:N = \l_@@_value_classified_level_tl,
+    % 特别类型-交叉研究方向
+    crossResearch .bool_set:N = \l_@@_value_cross_research_bool,
+    crossResearch .initial:n = {false},
+    % 特别类型-政府项目留学生
+    internationalStudentUGP .bool_set:N = \l_@@_value_international_student_ugp_bool,
+    internationalStudentUGP .initial:n = {false},
   }
 %    \end{macrocode}
 %
@@ -657,7 +701,19 @@
     tabularFontSize .tl_set:N = \l_@@_misc_tabular_font_size_tl,
     tabularFontSize .initial:n = {5},
     arialFont .tl_set:N = \l_@@_misc_arial_font_path_tl,
-    autoref / algo .tl_set:N = \algoautorefname,
+    autoref / algo .code:n = {
+      \AtBeginDocument{
+        % 定义算法标题
+        % 针对 algorithm 宏包
+        \tl_set:Nn \ALG@name {#1}
+        % 针对 algorithm2e 宏包
+        \tl_set:Nn \algorithmcfname {#1}
+
+        % 定义算法的 autoref
+        % algorithm2e 宏包会覆写它，所以我们必须AtBeginDocument时再修改
+        \tl_set:Nn \algorithmautorefname {#1}
+      }
+    },
     autoref / algo .initial:n = {\g_@@_const_autoref_algo_tl},
     autoref / them .tl_set:N = \themautorefname,
     autoref / them .initial:n = {\g_@@_const_autoref_them_tl},
@@ -687,6 +743,13 @@
     autoref / table .initial:n = {\g_@@_const_autoref_tab_tl},
     autoref / equ .tl_set:N = \equationautorefname,
     autoref / equ .initial:n = {\g_@@_const_autoref_equ_tl},
+    % 浮动体相关的各种间距
+    floatSeparation .tl_set:N = \l_@@_misc_float_separation_tl,
+    floatSeparation .initial:n = {0},
+    algorithmSeparation .tl_set:N = \l_@@_misc_algorithm_separation_tl,
+    algorithmSeparation .initial:n = {12pt plus 4pt minus 4pt},
+    tabularRowSeparation .tl_set:N = \l_@@_misc_tabular_row_separation_tl,
+    tabularRowSeparation .initial:n = {1},
   }
 %    \end{macrocode}
 %    
@@ -788,9 +851,11 @@
   hyphen .initial:n = {true},
   % 控制公式和上下文的距离
   mathAboveDisplaySkip .dim_set:N = \l_@@_style_math_above_display_skip_dim,
-  mathAboveDisplaySkip .initial:n = {3pt},
+  mathAboveDisplaySkip .initial:n = {10pt},
   mathBelowDisplaySkip .dim_set:N = \l_@@_style_math_below_display_skip_dim,
-  mathBelowDisplaySkip .initial:n = {3pt},
+  mathBelowDisplaySkip .initial:n = {10pt},
+  betterTimesNewRoman .bool_set:N = \l_@@_style_better_new_roman_bool,
+  betterTimesNewRoman .initial:n = {false},
 }
 %    \end{macrocode}
 %
@@ -835,9 +900,9 @@
   omit .bool_set:N = \l_@@_publications_omit_bool,
   omit .initial:n = {false},
   maxbibnames .int_set:N = \l_@@_publications_maxbibnames_int,
-  maxbibnames .initial:n = {3},
+  maxbibnames .initial:n = {10},
   minbibnames .int_set:N = \l_@@_publications_minbibnames_int,
-  minbibnames .initial:n = {1},
+  minbibnames .initial:n = {10},
 }
 %    \end{macrocode}
 % 在宏加载时，处理 |bithesis/option| 中的值。使得 |bithesis| 
@@ -919,7 +984,6 @@
 \RequirePackage{listings}
 \RequirePackage{enumitem}
 \RequirePackage{fmtcount}
-\RequirePackage{stmaryrd}
 %    \end{macrocode}
 %
 % 抑制 \pkg{hyperref} 中对 |\hskip| 的 warning 信息。
@@ -970,7 +1034,17 @@
 % 根据学校的要求，在本科生模板图片前后加上一行空白。
 %    \begin{macrocode}
 \@@_if_bachelor_thesis:T {
+  % 浮动体位于正文中间时，调整浮动体与上下正文之间的距离，即"前后加上一行空白"
   \setlength{\intextsep}{1.80\baselineskip plus 0.2\baselineskip minus 0.2\baselineskip}
+  % 浮动体位于页面顶部或底部时，调整浮动体与正文之间的距离，后或前加上一行空白
+  \setlength{\textfloatsep}{1.80\baselineskip plus 0.2\baselineskip minus 0.2\baselineskip}
+  \AtBeginDocument {
+    % longtable 宏包有另外的机制，需专门调整
+    \@ifpackageloaded{longtable}{
+      \setlength{\LTpre}{0.60\baselineskip plus 0.2\baselineskip minus 0.2\baselineskip}
+      \setlength{\LTpost}{1.60\baselineskip plus 0.2\baselineskip minus 0.2\baselineskip}
+    }{}
+  }
 }
 %    \end{macrocode}
 %
@@ -979,8 +1053,22 @@
 % 设置 Times New Roman 字体。
 % 根据学校规范要求，默认情况下也使用 Times New Roman 字体。
 %    \begin{macrocode}
-\setmainfont{Times~New~Roman}
-\setromanfont{Times~New~Roman}
+\ctex_at_end_preamble:n {
+  \bool_if:NTF \l_@@_style_better_new_roman_bool {
+    \defaultfontfeatures[TeX~Gyre~Termes]
+    {
+     Extension      = .otf ,
+     UprightFont    = texgyretermes-regular,
+     BoldFont       = texgyretermes-bold,
+     ItalicFont     = texgyretermes-italic,
+     BoldItalicFont = texgyretermes-bolditalic,
+    }
+    \setmainfont{TeX~Gyre~Termes}
+  }{
+    \setmainfont{Times~New~Roman}
+    \setromanfont{Times~New~Roman}
+  }
+}
 %    \end{macrocode}
 %
 % \begin{macro}{\@@_font_path:}
@@ -1392,6 +1480,8 @@
     {\hspace{.5em}\titlerule*{.}\contentspage}
 %    \end{macrocode}
 % 
+%  \subsubsection{定义样式相关函数}
+%
 % \begin{macro}{\frontmatter}
 % 定义前置内容的页面样式。
 %    \begin{macrocode}
@@ -1412,7 +1502,7 @@
   \linespread{1.53}\selectfont
   \pagestyle{BIThesis}
   
-  % 表格内容默认使用五号字。
+  % 调整表格内容字号（默认五号）和各行之间的距离。
   % 
   % 由于这种方式会影响所有的表格，
   % 所以我们尽可能延迟这种影响。
@@ -1420,8 +1510,24 @@
   % 不过，在目前的代码实现中没有在封面
   % 之类的地方使用表格，所以目前即使放在
   % preamble 中也不会有影响。
-  \AtBeginEnvironment{tabular}{\zihao{\l_@@_misc_tabular_font_size_tl}}
-  \AtBeginEnvironment{tabular*}{\zihao{\l_@@_misc_tabular_font_size_tl}}
+  %
+  % 支持标准tabular、tabular*环境和宏包tabularx、longtable。
+  %
+  % 为保证各种表格效果一致，要先手动重置setspace宏包漏掉的longtable；
+  \AtBeginEnvironment {longtable} {\singlespacing}
+  % 之后再统一设置。
+  \clist_map_inline:nn 
+    {tabular, tabular*, tabularx, longtable}
+    {
+      \AtBeginEnvironment {##1} {
+        % 字号只想设置表格内容，不想影响caption。
+        % 一般caption在环境之外，自然不受影响；
+        % 而longtable的caption虽在环境内，但caption宏包能正常处理。
+        \zihao{\l_@@_misc_tabular_font_size_tl}
+        % 各行间距只想影响表格，不想影响矩阵，因此也必须在钩子中设置。
+        \cs_set:Npn \arraystretch {\l_@@_misc_tabular_row_separation_tl}
+      }
+    }
 }
 %    \end{macrocode}
 % \end{macro}
@@ -1480,14 +1586,24 @@
   \@@_if_thesis_english:TF {
     \setlength{\belowcaptionskip}{9pt}
   } {
-    % 为了满足 “前后一行空白的问题”，需要删除 Caption 下方的间距。
+    % 为了满足 “前后一行空白的问题”，需要删除 caption 下方的间距。
     % 详见 `caption` 宏包手册和
     % https://github.com/CTeX-org/forum/issues/86
     % 
     % 这里实际的 skip 在 15pt 左右，但是全部移除会导致当图片置于页面顶部时，
     % 图片与上方的间距过小，因此这里只移除 5pt。
-    % 当然，这样会导致文本间的图片的 Caption 下方的间距微微大于一行。
+    % 当然，这样会导致文本间的图片的 caption 下方的间距微微大于一行。
+    %
+    % 至于表格，虽然其caption位置在上方（而图片是在下方），
+    % 但 `caption` 宏包已考虑这种区别，统一设置 `belowskip` 即可。
     \captionsetup{belowskip=-5pt}
+    % 不过 longtable 宏包有另外的机制，不设置 belowskip 时间距已可较小，
+    % 设置成负数还导致 caption 和表格本体的距离变大。因此我们撤销更改。
+    \captionsetup[longtable]{belowskip=0pt}
+
+    % 此外在浮动体内部，调整表格 caption 和表格本体间的距离。
+    % 本来默认有一定空隙，现改为紧贴，这样更接近Word模板实作。
+    \captionsetup[table]{skip=5pt}
   }
 } {
   % 而研究生模板不存在这个问题。
@@ -1499,8 +1615,20 @@
 %    \begin{macrocode}
 \@@_if_graduate:TF {
   \tl_set:Nn \g_@@_label_divide_char_tl {.}
+  % 研究生模板要求 "图序和图题间空1个中文字距"
+  \captionsetup[figure]{font=small,labelsep=quad}
+  % 研究生模板要求 "表序和题目间空1个中文字距"
+  \captionsetup[table]{font=small,labelsep=quad}
+  % 其它 caption 也参照上述格式
+  \captionsetup[lstlisting]{font=small,labelsep=quad}
+  \captionsetup[algorithm]{font=small,labelsep=quad}
 } {
   \tl_set:Nn \g_@@_label_divide_char_tl {-}
+  % 本科生模板无 caption 字距要求
+  \captionsetup[figure]{font=small,labelsep=space}
+  \captionsetup[table]{font=small,labelsep=space}
+  \captionsetup[lstlisting]{font=small,labelsep=space}
+  \captionsetup[algorithm]{font=small,labelsep=space}
 }
 %    \end{macrocode}
 % 
@@ -1509,11 +1637,9 @@
 %    \begin{macrocode}
 % 图片：五号字。
 \cs_set:Npn \thefigure {\thechapter\g_@@_label_divide_char_tl\arabic{figure}}
-\captionsetup[figure]{font=small,labelsep=space}
 
 % 表格：五号字。
 \cs_set:Npn \thetable {\thechapter\g_@@_label_divide_char_tl\arabic{table}}
-\captionsetup[table]{font=small,labelsep=space}
 
 % equation
 \cs_set:Npn \theequation {\thechapter\g_@@_label_divide_char_tl\arabic{equation}}
@@ -1523,14 +1649,40 @@
   \cs_gset:Npn \thelstlisting {\thechapter\g_@@_label_divide_char_tl\arabic{lstlisting}}
   \cs_gset:Npn \lstlistingname {\c_@@_label_code_tl}
   
+  % 算法变成「章节号-序号」
+  % 为了减少修改，我们只适配按章编号的情况。
+  % 针对 algorithm 宏包
+  \@ifpackagewith{algorithm}{chapter}{
+    \cs_gset:Npn \thealgorithm
+    {\thechapter\g__bithesis_label_divide_char_tl\arabic{algorithm}}
+  }{}
+  % 针对 algorithm2e 宏包
+  \@ifpackagewith{algorithm2e}{algochapter}{
+    % 名字中的“cf”是指其作者 Christophe Fiorio。
+    \cs_gset:Npn \thealgocf
+    {\thechapter\g__bithesis_label_divide_char_tl\arabic{algocf}}
+  }{}
+  
   % 默认的情况下，保留公式和上下文的一定间距。（会比 Word 稍宽一些）
   \setlength{\abovedisplayskip}{\l_@@_style_math_above_display_skip_dim}
   \setlength{\abovedisplayshortskip}{\l_@@_style_math_above_display_skip_dim}
   \setlength{\belowdisplayskip}{\l_@@_style_math_below_display_skip_dim}
   \setlength{\belowdisplayshortskip}{\l_@@_style_math_below_display_skip_dim}
-  %
+  % 调整浮动体与文字之间的距离
+  \addtolength{\intextsep}{\l_@@_misc_float_separation_tl\baselineskip}
+  \addtolength{\textfloatsep}{\l_@@_misc_float_separation_tl\baselineskip}
+  % longtable 宏包有另外的机制，需专门调整
+  \@ifpackageloaded{longtable}{
+    \addtolength{\LTpre}{\l_@@_misc_float_separation_tl\baselineskip}
+    \addtolength{\LTpost}{\l_@@_misc_float_separation_tl\baselineskip}
+  }{}
+  % 调整算法与文字之间的距离
+  % 针对 algorithm2e 宏包
+  \@ifpackageloaded{algorithm2e}{
+    % 宏包手册介绍可自定义宏，再`\SetAlgoSkip`；我们为简洁，直接覆写。
+    \renewcommand{\@algoskip}{\vspace{\l_@@_misc_algorithm_separation_tl}}
+  }{}
 }
-\captionsetup[lstlisting]{font=small,labelsep=space}
 %    \end{macrocode}
 % \end{macro}
 % 
@@ -1575,8 +1727,8 @@
 % 
 % 调整插图目录与表格目录的标题。
 %    \begin{macrocode}
-\cs_set:Npn \listfigurename {\@@_get_const:N {figure}}
-\cs_set:Npn \listtablename {\@@_get_const:N {table}}
+\cs_set:Npn \listfigurename {\currentpdfbookmark{\c__bithesis_label_figure_tl}{ch:figures}\@@_get_const:N {figure}}
+\cs_set:Npn \listtablename {\currentpdfbookmark{\c__bithesis_label_table_tl}{ch:tables}\@@_get_const:N {table}}
 %    \end{macrocode}
 % 
 % 预定义用户常用的证明环境。
@@ -1767,6 +1919,7 @@
 %    \begin{macrocode}
 \cs_new:Npn \make_graduate_cover: {
   \cleardoublepage
+  \currentpdfbookmark{封面}{frontmatter:cover1}
   \begin{titlepage}
     {
       \heiti\zihao{5}
@@ -1795,25 +1948,25 @@
 %    \begin{macrocode}
 \cs_new:Npn \make_paper_back: {
   \cleardoublepage
+  \currentpdfbookmark{书脊}{frontmatter:paperback}
   \begin{titlepage}
-   \vskip 5cm
-   \begin{center}
+    \centering
+    % 实现竖排——将水平宽度设得很窄，让文字自动换行，并改小行距
     \linespread{1.1}\selectfont
-    \begin{minipage}[t][19.7cm]{2em}
-      \begin{center}
-        {
-          \heiti\zihao{3}
-          \tl_if_blank:VTF \l_@@_value_vertical_title_tl 
-            {\l_@@_value_title_tl}{\l_@@_value_vertical_title_tl}
-        }
-          \vfill
-        {\heiti\zihao{3}\@@_secret_info:nn{\l_@@_value_author_tl}{\g_@@_const_substitute_symbol_tl\quad\g_@@_const_substitute_symbol_tl\quad\g_@@_const_substitute_symbol_tl}}
-          \vfill
-        {\heiti\zihao{3}\c_@@_label_university_tl}
-      \end{center}
+    \begin{minipage}[c][19.7cm]{2em}
+      \centering
+      {
+        \heiti\zihao{3}
+        \tl_if_blank:VTF \l_@@_value_vertical_title_tl 
+          {\l_@@_value_title_tl}{\l_@@_value_vertical_title_tl}
+      }
+      \par
+      \vspace{1em plus 1fill}
+      {\heiti\zihao{3}\@@_secret_info:nn{\l_@@_value_author_tl}{\g_@@_const_substitute_symbol_tl\quad\g_@@_const_substitute_symbol_tl\quad\g_@@_const_substitute_symbol_tl}}
+      \par
+      \vspace{1em plus 1fill}
+      {\heiti\zihao{3}\c_@@_label_university_tl}
     \end{minipage}
-   \end{center}
-   % \vskip 5cm
   \end{titlepage}
 }
 %    \end{macrocode}
@@ -1824,12 +1977,46 @@
 %    \begin{macrocode}
 \cs_new:Npn \@@_make_chinese_title_page: {
   \cleardoublepage
+  \currentpdfbookmark{中文题名页}{frontmatter:titlepage}
   \begin{titlepage}
-      {
+      \begin{minipage}[t]{0.48\textwidth}
         % 密级、分类号
         {\heiti \zihao{5} \noindent \c_@@_label_classification_tl}
         \l_@@_value_classification_tl\\
         {\heiti \zihao{5} \c_@@_label_udc_tl}  \l_@@_value_udc_tl
+      \end{minipage}
+
+      \hfill
+
+      % 以下内容是「特别类型」的内容，
+      % 在没有勾选的时候隐藏。
+      \bool_if:nT {\l_@@_cover_show_special_type_box_bool || \l_@@_value_international_student_ugp_bool || \l_@@_value_cross_research_bool} {
+        \begin{minipage}[t]{0.48\textwidth}
+          \vspace{-12pt}
+          \begin{flushright}
+          \setlength\fboxrule{1pt}\setlength\fboxsep{3mm}
+          \fbox{
+            \noindent\begin{minipage}{0.48\linewidth}
+              \heiti \zihao{-4}
+              \scalebox{1.1}\BigStar{}\hspace{4pt} \c_@@_label_special_type_tl\\
+
+              {
+                \zihao{4}
+                \bool_if:NTF \l_@@_value_cross_research_bool {\boxcheck:} {\boxempty:}
+              }
+              \hspace{1pt}\c_@@_label_cross_research_tl\\
+
+              {
+                \zihao{4}
+                \bool_if:NTF \l_@@_value_international_student_ugp_bool {\boxcheck:} {\boxempty:}
+              }
+              \hspace{1pt}\c_@@_label_international_student_ugp_tl
+            \end{minipage}
+          }
+          \end{flushright}
+        \end{minipage}
+        % 保证下面的内容空间不会受到挤占。
+        \vspace{-35pt}
       }
 
      \begin{center}
@@ -1888,6 +2075,7 @@
 % 制作英文封面页。
 %    \begin{macrocode}
 \cs_new:Npn \@@_make_english_title_page: {
+  \currentpdfbookmark{英文题名页}{frontmatter:titlepageen}
   \begin{titlepage}
     \begin{center}
 
@@ -1971,8 +2159,13 @@
       % 原创性声明部分
       \begin{center}
         \@@_same_page:
+        \ctexset{
+          chapter = {
+            titleformat = {\heiti\zihao{-2}},
+          }
+        }
+        \currentpdfbookmark{\c_@@_graduate_label_originality_tl}{frontmatter:originality}
         \chapter*{
-          \heiti\zihao{-2}
           \c_@@_graduate_label_originality_tl
         }
       \end{center}
@@ -1991,8 +2184,13 @@
       % 使用授权声明部分。
       \begin{center}
         \@@_same_page:
+        \ctexset{
+          chapter = {
+            titleformat = {\heiti\zihao{-2}},
+          }
+        }
+        \currentpdfbookmark{\c_@@_graduate_label_authorization_tl}{frontmatter:originality1}
         \chapter*{
-          \heiti\zihao{-2}
           \c_@@_graduate_label_authorization_tl
         }
       \end{center}
@@ -2087,13 +2285,14 @@
 %    \begin{macrocode}
 \DeclareDocumentCommand \MakeCover {}
   {
-    \begin{blindPeerReview}[\l_@@_style_hide_cover_in_peer_review_bool]
+    \begin{blindPeerReview}[\l_@@_cover_hide_cover_in_peer_review_bool]
     \group_begin:
 
     \int_case:nn {\g_@@_thesis_type_int}
     {
       {1}
       {
+        \currentpdfbookmark{封面}{frontmatter:cover}
         \begin{titlepage}
           \vspace*{16mm}
 
@@ -2337,11 +2536,12 @@
 \NewDocumentCommand \MakeOriginality {} 
   {
     \group_begin:
-    \begin{blindPeerReview}[\l_@@_style_hide_cover_in_peer_review_bool]
+    \begin{blindPeerReview}[\l_@@_cover_hide_cover_in_peer_review_bool]
       \int_case:nn {\g_@@_thesis_type_int}
       {
         {1} 
         {
+          \currentpdfbookmark{声明}{frontmatter:originality}
           \pagestyle{BIThesis}
           \pagenumbering{gobble}
 
@@ -2445,9 +2645,20 @@
 %    \begin{macrocode}
 \NewDocumentCommand \MakePaperBack {}
   {
-    \begin{blindPeerReview}[\l_@@_style_hide_cover_in_peer_review_bool]
+    % 上下各留出规定的边距，到下一页再恢复。
+    % 若标题超长，自然会向上下溢出。
+    %
+    % 必须在顶层操作，不然影响不确定。
+    % https://tex.stackexchange.com/q/718581
+    %
+    % 单纯`\newgeometry`再`\restoregeometry`相当于仅仅`\clearpage`，也无问题。
+    \newgeometry{
+      vmargin = 5cm,
+    }
+    \begin{blindPeerReview}[\l_@@_cover_hide_cover_in_peer_review_bool]
       \make_paper_back:
     \end{blindPeerReview}
+    \restoregeometry
   }
 %    \end{macrocode}
 % \end{macro}
@@ -2457,7 +2668,7 @@
 %    \begin{macrocode}
 \NewDocumentCommand \MakeTitle {}
   {
-    \begin{blindPeerReview}[\l_@@_style_hide_cover_in_peer_review_bool]
+    \begin{blindPeerReview}[\l_@@_cover_hide_cover_in_peer_review_bool]
       \@@_make_chinese_title_page:
       \@@_make_english_title_page:
     \end{blindPeerReview}
@@ -2492,12 +2703,17 @@
         \vspace{-8pt}
       }
 
+      % 添加目录书签
+      \__bithesis_if_thesis_int_type:nF {3} {
+        \currentpdfbookmark{\c__bithesis_label_toc_tl}{ch:toc}
+      }
+
       % 制作目录
       \tableofcontents
 
       % 在本科生全英文模板中，添加「目录」本身到目录中。
-      \@@_if_thesis_int_type:nT {3} {
-        \addcontentsline{toc}{chapter}{\c_@@_label_toc_en_tl}
+      \__bithesis_if_thesis_int_type:nT {3} {
+        \addcontentsline{toc}{chapter}{\c__bithesis_label_toc_en_tl}
       }
 
       % 单独成页
@@ -2555,8 +2771,8 @@
       \bool_if:NTF \l_@@_add_abstract_to_toc_bool {
         \chapter{\c_@@_label_abstract_tl}
       } {
-        \chapter*{\c_@@_label_abstract_tl}
         \currentpdfbookmark{\c_@@_label_abstract_tl}{ch:abstract}
+        \chapter*{\c_@@_label_abstract_tl}
       }
     }
     \vspace*{1mm}
@@ -2632,8 +2848,8 @@
       \bool_if:nTF {\l_@@_add_abstract_en_to_toc_bool} {
         \chapter{\c_@@_label_abstract_en_tl}
       } {
-        \chapter*{\c_@@_label_abstract_en_tl}
         \currentpdfbookmark{\c_@@_label_abstract_en_tl}{ch:abstract:en}
+        \chapter*{\c_@@_label_abstract_en_tl}
       }
     }
   }

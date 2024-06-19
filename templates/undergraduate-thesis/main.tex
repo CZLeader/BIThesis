@@ -36,8 +36,6 @@
     xiheiFont = STXIHEI.TTF,
     %% 使用以下参数来自定义封面日期
     % date = 2022年6月,
-    % 本科生盲审要求删去封面，而不是隐藏封面信息。
-    hideCoverInPeerReview = true,
   },
   info = {
     % 想要删除某项封面信息，直接删除该项即可。
@@ -51,7 +49,7 @@
     author = 惠计算,
     studentId = 11xxxxxxxx,
     supervisor = 张哈希,
-    keywords = {北京理工大学；本科生；毕业设计（论文）},
+    keywords = {北京理工大学；本科生；毕业设计（论文）——请在“main.tex”开头设置},
     keywordsEn = {BIT; Undergraduate; Graduation Project (Thesis)},
     % 如果你的毕设为校外毕设，请将下面这一行语句解除注释（删除第一个百分号字符）并填写你的校外毕设导师名字
     % externalSupervisor = 左偏树,
@@ -59,7 +57,16 @@
   style = {
     % 开启 Windows 平台下的中易宋体伪粗体。
     % windowsSimSunFakeBold = true,
-  }
+    % 开启该选项后，将用 Times New Roman 的开源字体 TeX Gyre Termes 作为正文字体。 
+    % 这个选项适用于以下情况：
+    % 1. 不想在系统中安装 Times New Roman。
+    % 2. 在 Linux/macOS 下遇到 `\textsc` 无法正常显示的问题。
+    % betterTimesNewRoman = true,
+  },
+  misc = {
+    % 微调表格行间距
+    tabularRowSeparation = 1.25,
+  },
 }
 
 % 使用 listings 宏包进行代码块使用，并使用了预定义的样式，
@@ -85,9 +92,7 @@
 % 参考文献引用文件位于 misc/ref.bib
 \addbibresource{misc/ref.bib}
 
-% 如果要按照计算机学院的要求，
-% 在外文翻译报告中使用带有“北京理工大学”水印
-% 请使用此 issue 提供的方法：
+% 如果要按照计算机学院的要求，带有“北京理工大学”水印，请使用此 issue 提供的方法：
 % https://github.com/BITNP/BIThesis/issues/350#issuecomment-1565974141
 
 % 文档开始

@@ -41,6 +41,7 @@
   info = {
     title = 北京理工大学本科生毕业设计（论文）题目,
     titleEn = {The Subject of Undergraduate Graduation Project (Thesis) of Beijing Institute of Technology},
+    % 注意，这里要写的是毕设的大标题，不是你要翻译的文献的标题。
     % 想要删除某项封面信息，直接删除该项即可。
     % 想要让某项封面信息留空（但是保留下划线），请传入空白符组成的字符串，如"{~}"。
     % 如需要换行，则用 “\\” 符号分割。
@@ -52,13 +53,24 @@
     supervisor = 张哈希,
     translationTitle = 填写你的外文翻译中文题目,
     translationOriginTitle = 填写你的外文翻译原英文题目,
-    keywords = {北京理工大学；本科生；毕业设计（外文翻译）},
+    keywords = {北京理工大学；本科生；毕业设计（外文翻译）——请在“main.tex”开头设置},
     % 如果你的毕设为校外毕设，请将下面这一行语句解除注释（删除第一个百分号字符）并填写你的校外毕设导师名字
     % externalSupervisor = 左偏树,
   },
   style = {
-    % head = {自定义页眉文字}
-  }
+    % 页眉若要按信息与电子学院的要求，删掉“外文翻译”几字，请解除下一行的注释。
+    % head = {北京理工大学本科生毕业设计（论文）},
+    %
+    % 开启该选项后，将用 Times New Roman 的开源字体 TeX Gyre Termes 作为正文字体。 
+    % 这个选项适用于以下情况：
+    % 1. 不想在系统中安装 Times New Roman。
+    % 2. 在 Linux/macOS 下遇到 `\textsc` 无法正常显示的问题。
+    % betterTimesNewRoman = true,
+  },
+  misc = {
+    % 微调表格行间距
+    tabularRowSeparation = 1.25,
+  },
 }
 
 % 大部分关于参考文献样式的修改，都可以通过此处的选项进行配置。
@@ -77,6 +89,9 @@
 
 % 参考文献引用文件位于 misc/ref.bib
 \addbibresource{misc/ref.bib}
+
+% 如果要按照计算机学院的要求，带有“北京理工大学”水印，请使用此 issue 提供的方法：
+% https://github.com/BITNP/BIThesis/issues/350#issuecomment-1565974141
 
 % 文档开始
 \begin{document}

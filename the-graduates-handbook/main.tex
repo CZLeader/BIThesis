@@ -10,7 +10,7 @@
   % 采用章节标题级别的附录格式
   appendices / chapterLevel = true,
   style = {
-    head = \BIThesis 研究生学位论文 \LaTeX 模板快速使用指南,
+    head = \BIThesis \isGraduateTF{研究生学位论文}{本科生毕业设计（论文）} \LaTeX 模板快速使用指南,
     pageVerticalAlign = top,
     % 开启 Windows 平台下的中易宋体伪粗体。
     % windowsSimSunFakeBold = true,
@@ -65,6 +65,42 @@
 ]{biblatex}
 
 \addbibresource{reference/main.bib}
+
+\usepackage{hyperref}
+% https://github.com/BITNP/BIThesis/discussions/400
+% https://static.latexstudio.net/wp-content/uploads/2018/03/swjtuthesis.pdf
+\def\figureautorefname~#1\null{图~#1~\null}
+\def\chapterautorefname~#1\null{第~#1~章\null}
+\def\sectionautorefname~#1\null{第~#1~节\null}
+\def\equationautorefname~#1\null{式~(#1)~\null}
+
+\ExplSyntaxOn
+
+\NewDocumentCommand{\getenv}{om}
+ {
+  \sys_get_shell:nnN { kpsewhich ~ --var-value ~ #2 } { } \l_tmpa_tl
+  \tl_trim_spaces:N \l_tmpa_tl
+  \IfNoValueTF { #1 }
+   {
+    \tl_use:N \l_tmpa_tl
+   }
+   {
+    \tl_set_eq:NN #1 \l_tmpa_tl
+   }
+ }
+
+ \tl_gset:Nn \GRADUATE {}
+ \getenv[\GRADUATE]{GRADUATE}
+
+  % 若为研究生，显示第一个参数；若为本科生，显示第二个参数。
+  % 命令内部不能使用 lstlisting 环境，原因如下。可用 \lstinputlisting 绕开。
+  % Verbatim material can't be placed in a macro argument because then the material got already parsed by TeX and the switching to verbatim mode comes to late.
+  % https://tex.stackexchange.com/a/122055
+ \NewDocumentCommand{\isGraduateTF}{ m m } {
+   \str_if_eq:VnTF \GRADUATE { true } { #1 } { #2 }
+ }
+
+\ExplSyntaxOff
 
 \begin{document}
 

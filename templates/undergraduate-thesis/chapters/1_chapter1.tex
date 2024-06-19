@@ -44,15 +44,13 @@
 \textcolor{blue}{\underline{\underline{表-示例：（阅后删除此段）}}}
 % 三线表
 \begin{table}[htbp]
-  \linespread{1.5}
-  \zihao{5}
   \centering
   \caption{统计表}\label{统计表}
   \begin{tabular}{*{5}{>{\centering\arraybackslash}p{2cm}}} \toprule
-    项目    & 产量    & 销量    & 产值   & 比重    \\ \hline
+    项目    & 产量    & 销量    & 产值   & 比重    \\ \midrule
     手机    & 1000  & 10000 & 500  & 50\%  \\
     计算机   & 5500  & 5000  & 220  & 22\%  \\
-    笔记本电脑 & 1100  & 1000  & 280  & 28\%  \\
+    笔记本电脑 & 1100  & 1000  & 280  & 28\%  \\ \midrule
     合计    & 17600 & 16000 & 1000 & 100\% \\ \bottomrule
     \end{tabular}
 \end{table}
@@ -68,14 +66,14 @@
 
 \subsubsection{生僻字}
 
-% 一个可能无法正常显示的生僻字
 % 一个可能无法正常显示的生僻字: 彧。下文注释中，介绍了如何通过自定义字体来显示生僻字。
 
 % 定义一个提供了生僻字的字体，注意要确保你的系统存在该字体
 % \setCJKfamilyfont{custom-font}{Noto Serif CJK SC}
 
 % 使用自己定义的字体
-% 使用提供了相应字型的字体：\CJKfamily{custom-font}{彧}。
+% 使用提供了相应字形的字体：{\CJKfamily{custom-font} 彧}。
+% \CJKfamily 会切换字体，影响之后所有内容。故另套“{}”来分组，限制其作用范围。
 
 
 \section{字体效果表格}
@@ -84,8 +82,6 @@
 % 行：宋体、黑体、楷体、Serif、Sans Serif、Typewriter、Math
 
 \begin{table}[htb]
-    \linespread{1.5}
-    \zihao{5}
     \centering
     \caption{字体效果表格}
     \begin{tabular}{@{}lllll@{}}
@@ -96,6 +92,11 @@
       楷体         & {\kaishu{}楷书}      & \textbf{\kaishu{}楷书粗体} & \textit{\kaishu{}斜体楷体} &  \colorbox{gray}{\textbf{\textit{\kaishu{}楷书粗斜体}}}    \\
     Serif(Roman/Normal)      &    Regular    &  \textbf{Bold}  &    \textit{Italic}    &     \textbf{\textit{Bold Italic}}    \\
     Sans Serif &  \textsf{Regular}       &  \textbf{\textsf{Bold}}    &  \textit{\textsf{Bold}}   &    \textbf{\textit{\textsf{Bold}}}   \\
+    % 有些字体缺少特定变体，LaTeX会抛出警告，同时尽量替换为相近变体。
+    % 若编译结果能接受，可忽略之。
+    % 例如此处Typewriter代表的Latin Modern Sans Typewriter（lmtt）字体没有bold extended italic（bx/it）变体，
+    % 所以`\textbf{\textit{\texttt{…}}}`会被替换为bold slant（b/sl）变体，并引发如下警告。（其中TU指字体编码）
+    % Font shape `TU/lmtt/bx/it' in size <…> not available. Font shape `TU/lmtt/b/sl' tried instead.
     Typewriter &  \texttt{Regular}       &  \textbf{\texttt{Bold}}    &  \textit{\texttt{Bold}}   &    \textbf{\textit{\texttt{Bold}}}   \\
     Math       &   $\mathnormal{Regular} \mathrm{Roman}$  & $\mathbf{Bold}$   &    $\mathit{Italic}$    &  $\mathbf{\mathit{Bold Italic}}$    \\ \bottomrule
     \end{tabular}

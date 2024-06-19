@@ -70,10 +70,16 @@
     degreeEn = Master of Philosophy,
     majorEn = Materials Science and Engineering, 
     defenseDateEn = {June, 12th, 2022},
-    keywords = {形状记忆；聚氨酯；织物；合成；应用\textcolor{blue}{（硕士一般选3～6个单词或专业术语，博士一般选3～8个单词或专业术语，且中英文关键词必须对应。）}},
+    keywords = {形状记忆；聚氨酯；织物；合成；应用\textcolor{blue}{（硕士一般选3～6个单词或专业术语，博士一般选3～8个单词或专业术语，且中英文关键词必须对应。）}——请在“main.tex”开头设置},
     keywordsEn = shape memory properties; polyurethane; textile; synthesis; application,
     % 必要时置于封面右上角，并按照国家规定进行标记。
     % classifiedLevel = 密级\BigStar 保密期限,
+    %
+    % 以下两个选项不勾选时将会隐藏显示。
+    % 特别类型——交叉研究方向（一般不用勾选）
+    % crossResearch = true,
+    % 特别类型——政府项目留学生（一般不用勾选）
+    % internationalStudentUGP = true,
   },
   % 在目录页中不显示摘要和主要符号对照表的标题。
   TOC = {
@@ -85,13 +91,21 @@
     pageVerticalAlign = top,
     % 开启 Windows 平台下的中易宋体伪粗体。
     % windowsSimSunFakeBold = true,
+    % 开启该选项后，将用 Times New Roman 的开源字体 TeX Gyre Termes 作为正文字体。 
+    % 这个选项适用于以下情况：
+    % 1. 不想在系统中安装 Times New Roman。
+    % 2. 在 Linux/macOS 下遇到 `\textsc` 无法正常显示的问题。
+    % betterTimesNewRoman = true,
   },
   publications = {
     % 以下两个选项将影响「攻读学位期间发表论文与研究成果清单」中名称列表的省略阈值。
-    % 一般来说，如果你在全部文献中最低排在第四位，建议你将两个值都设置为 4。
+    % 一般来说，如果你在全部文献中最低排在第四位，建议你将两个值都设置为大于等于 4 的值。
     % 更详细的说明请见手册。
-    maxbibnames = 3,
-    minbibnames = 1,
+    maxbibnames = 10,
+    minbibnames = 10,
+    % 「攻读学位期间发表论文与研究成果清单」默认按照发表时间排序，
+    % 可以通过此选项关闭。关闭后将按照引用顺序排序。
+    % sorting = false
   },
   % 采用章节标题级别的附录格式
   appendices / chapterLevel = true,

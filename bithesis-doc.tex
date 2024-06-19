@@ -156,6 +156,7 @@
   \item 2023 年，冯开宇在此版本上增加了多种新的功能，并修复了一些已知的问题。
   并推进了官方（教务部、研究生院）对 \BIThesis 的认可。
   另外，2020级的徐元昌改正了文档、手册、注释中若干错误或过时信息（其中有些源于QQ群），增加了读书报告模板。
+  \item 2024 年，冯开宇和徐元昌推动了对研究生院原官方模板的替换。
 \end{itemize}
 
 \subsection{\BIThesis 是什么？}
@@ -312,7 +313,7 @@ tlmgr update bithesis
 \end{shell}
 
 \textbf{
-  在安装完发行版之后，还需要安装编辑 \LaTeX 所需的编辑器，在这里推荐 TexStudio。
+  在安装完发行版之后，还需要安装编辑 \LaTeX 所需的编辑器，在这里推荐 TeXstudio。
 }
 
 \textit{更多安装教程请访问我们的 
@@ -693,12 +694,31 @@ underlineOffset = (*(-10pt)|\marg{任意长度}*)
   设置封面信息中下划线的偏移量。
 \end{function}
 
-\begin{function}[added=2023-05-09]{cover/hideCoverInPeerReview}
+\begin{function}[added=2023-05-09, updated=2024-06-14]{cover/hideCoverInPeerReview}
 \begin{bitsyntax}[emph={[1]hideCoverInPeerReview}]
-hideCoverInPeerReview = (*(false)|true*)
+hideCoverInPeerReview = (*(from-thesis-type)|false|true*)
 \end{bitsyntax}
 
-  在盲审模式下，不渲染封面。
+  \textit{此选项默认值会按论文类型自动设置，一般已满足要求，不需要用户自行修改。}
+
+  在盲审模式下，是否不渲染封面。
+
+  \begin{itemize}
+    \item 若设为 |true|，盲审模式下直接删除封面。
+    \item 若设为 |false|，盲审模式下保留封面，只是隐去个人信息。
+    \item （默认）若设为 |from-thesis-type|，自动根据论文类型设置。具体来说，本科生设为 |true|，研究生设为 |false|。
+  \end{itemize}
+
+  未启用盲审模式时，此选项无效果。
+\end{function}
+
+\begin{function}[added=2024-03-22]{cover/showSpecialTypeBox}
+\begin{bitsyntax}[emph={[1]showSpecialTypeBox}]
+showSpecialTypeBox = (*(false)|true*)
+\end{bitsyntax}
+
+  展示「特殊类型」（研究生模板）的那个信息框。
+  因为美观原因默认关闭，和研究生院确认过这个信息框重要程度比较低。
 \end{function}
 
 \subsubsection{论文基本信息}
@@ -885,6 +905,26 @@ classifiedLevel = (*\marg{字符串}*)
   密级。
 \end{function}
 
+\begin{function}[added=2024-03-22]{info/crossResearch}
+\begin{bitsyntax}[emph={[1]crossResearch}]
+crossResearch = (*<(false)|true>*)
+\end{bitsyntax}
+
+  特殊类型：交叉研究方向。（不勾选时不显示整个内容）
+  
+  \textit{此选项一般不需要用户自行修改。}
+\end{function}
+
+\begin{function}[added=2024-03-22]{info/internationalStudentUGP}
+\begin{bitsyntax}[emph={[1]internationalStudentUGP}]
+internationalStudentUGP = (*<(false)|true>*)
+\end{bitsyntax}
+
+  特殊类型：政府项目留学生。
+  
+  \textit{此选项一般不需要用户自行修改。}
+\end{function}
+
 \subsubsection{样式信息}
 
 \begin{function}{style}
@@ -901,9 +941,11 @@ style/(*\meta{key}*) = (*\meta{value}*)
 head = (*\marg{字符串}*)
 \end{bitsyntax}
 
-  \textit{此选项一般不需要用户自行修改。}
+  \textit{此选项默认值会按论文类型自动设置，一般已满足要求，不需要用户自行修改。}
 
   页眉文字。
+
+  外文翻译模板（paper-translation）的默认值含“外文翻译”几字，有的学院要求去掉，这时请自行修改。
 \end{function}
 
 \begin{function}{style/headline}
@@ -1001,18 +1043,36 @@ hyphen = (*(true)|false*)
 
 \end{function}
 
-\begin{function}[added=2023-10-22]{style/mathAboveDisplaySkip,style/mathBelowDisplaySkip}
+\begin{function}[added=2023-10-22,updated=2024-04-22]{style/mathAboveDisplaySkip,style/mathBelowDisplaySkip}
 \begin{bitsyntax}[emph={[1]mathBelowDisplaySkip,mathAboveDisplaySkip}]
-mathBelowDisplaySkip = (*(3pt)|任意长度*)
-mathAboveDisplaySkip = (*(3pt)|任意长度*)
+mathBelowDisplaySkip = (*(10pt)|任意长度*)
+mathAboveDisplaySkip = (*(10pt)|任意长度*)
 \end{bitsyntax}
 
-定义公式环境（如 \verb|\begin{equation}| ）到上下段落间的距离。
+定义数学公式环境（如 \verb|\begin{equation}| ）到上下段落间的距离。
+
+默认值设置为 10pt——一个比较美观的宽度。
+如果你更习惯 Word 文档的公式上下文距离，可以设置为一个更小的值（比如 3pt），反之亦然。
   
 \textit{请保证源码中的公式的环境（如}\verb|\begin{equation}|
   \textit{）与上一段落不要有空行。否则，公式和上文段落之间会有额外的空白。}
 
 \end{function}
+
+\begin{variable}[added=2024-04-04]{style/betterTimesNewRoman}
+\begin{bitsyntax}[emph={[1]betterTimesNewRoman}]
+betterTimesNewRoman = (*(false)|true*)
+\end{bitsyntax}
+
+使用 TeX Gyre Termes 代替 Times New Roman 作为主要字体。
+这个选项适用于以下情况：
+\begin{enumerate}
+  \item  不想或无法在系统中安装 Times New Roman。
+  \item 在 Linux/macOS 下遇到 `\textsc` 无法正常显示的问题。
+\end{enumerate}
+
+由于该字体与 Times New Roman 极为相似，因此不用担心不符合学校规定。
+\end{variable}
 
 \subsubsection{目录选项}
 
@@ -1110,13 +1170,24 @@ publications/(*\meta{key}*) = (*\meta{value}*)
 sorting = (*(true)|false*)
 \end{bitsyntax}
 
-根据学校要求，攻读学位期间发表论文与研究成果清单
-中的论文应按照发表时间排序。
-但是在实际使用中，有时候需要按照用户意愿自定义排序。
+学校要求「攻读学位期间发表论文与研究成果清单」中的论文按发表时间排序，
+但实际可能有别的需求，想自定义排序。
 该选项用于控制是否按照发表时间排序。
 
+您大致有以下三种选择。
+
+\begin{itemize}
+  \item 完全按发表时间排序——保留默认的 |true| 即可。（严格来说，这是按年份、姓名、标题排序。）
+
+  \item 完全手动指定顺序——修改为 |false|。这样会按照 |\addpubs| 或 |\addpub| 引用顺序来排。
+
+  \item 在发表时间顺序上微调，把个别的提到最前——保留默认的 |true|，同时在 |*.bib| 文件中给个别项加上 |sortkey| 字段。
+
+    具体例子可参考 \href{https://github.com/BITNP/BIThesis/discussions/407#discussioncomment-8630685}{GitHub Discussion \#407}，详细解释可参考 \href{http://mirrors.ctan.org/macros/latex/contrib/biblatex-contrib/biblatex-gb7714-2015/biblatex-gb7714-2015.pdf}{biblatex-gb7714-2015 宏包手册（中文）}或 \href{http://mirrors.ctan.org/macros/latex/contrib/biblatex/doc/biblatex.pdf}{biblatex 宏包手册（英文）}。
+\end{itemize}
+
 \textit{注意，如果编译后编号产生错误，
-请使用 |latexmk -c| 或手动清空缓存后再编译}
+请使用 |latexmk -c| 或手动清空缓存后再编译。}
 \end{function}
 
 \begin{function}{publications/omit}
@@ -1129,9 +1200,9 @@ omit = (*(false)|true*)
 \textit{一般不需要用户自行修改。}
 \end{function}
 
-\begin{function}[added=2023-02-18]{publications/maxbibnames}
+\begin{function}[added=2023-02-18,updated=2024-04-23]{publications/maxbibnames}
 \begin{bitsyntax}[emph={[1]maxbibnames}]
-maxbibnames = (*(3)|\marg{正整数}*)
+maxbibnames = (*(10)|\marg{正整数}*)
 \end{bitsyntax}
 
 影响「攻读学位期间发表论文与研究成果清单」中所有名称列表（author、editor 等）的阈值。
@@ -1140,9 +1211,9 @@ maxbibnames = (*(3)|\marg{正整数}*)
 
 \end{function}
 
-\begin{function}[added=2023-02-18]{publications/minbibnames}
+\begin{function}[added=2023-02-18,updated=2024-04-23]{publications/minbibnames}
 \begin{bitsyntax}[emph={[1]minbibnames}]
-minbibnames = (*(1)|\marg{正整数}*)
+minbibnames = (*(10)|\marg{正整数}*)
 \end{bitsyntax}
 
 影响「攻读学位期间发表论文与研究成果清单」中所有名称列表（author、editor 等）的限制值。
@@ -1177,7 +1248,7 @@ arialFont = (*\marg{字符串}*)
   在 Windows 和 MacOS 中，该字体已经安装；在 Linux 中需要用户自行安装（如果你是 WSL 用户，可参照\ref{sec:word-fonts}直接使用 Windows 下的字体）。
 \end{function}
 
-\begin{function}[added=2023-04-22]{misc/tabularFontSize}
+\begin{function}[added=2023-04-22, updated=2024-05-13]{misc/tabularFontSize}
 \begin{bitsyntax}[emph={[1]tabularFontSize}]
 tabularFontSize = (*(5)|其他字号*)
 \end{bitsyntax}
@@ -1188,6 +1259,8 @@ tabularFontSize = (*(5)|其他字号*)
 
   如果你需要临时调整表格中的字号，可以使用 |\BITSetup| 命令
   在局部范围内覆盖此选项（注意使用大括号）。
+
+  此选项影响的“表格”具体包括标准 |tabular|、|tabular*| 环境，以及 |tabularx| 和 |longtable| 宏包提供的环境。
 
 \begin{latex}
 {
@@ -1255,6 +1328,55 @@ hideLinks = (*(true)|false*)
  \textit{请在导言区使用此选项。}
 
  相关功能由 \pkg{hyperref} 宏包支持，可参阅其手册进一步用 \cs{hypersetup} 定制。
+
+\end{function}
+
+\begin{function}[added=2024-04-09]{misc/floatSeparation}
+\begin{bitsyntax}[emph={[1]floatSeparation}]
+floatSeparation = (*(0)|\marg{实数}*)
+\end{bitsyntax}
+
+ \textit{此选项一般不需要用户自行修改。}
+
+ 此选项用于调整浮动体与正文之间的距离，距离单位为行距，允许小数与负数。默认值为0倍行距，即不调整。
+
+ 默认值已考虑本科生毕业设计对空行的要求。
+
+ \textit{请在导言区使用此选项。}
+
+\end{function}
+
+\begin{function}[added=2024-05-20]{misc/algorithmSeparation}
+\begin{bitsyntax}[emph={[1]algorithmSeparation}]
+floatSeparation = (*(12pt plus 4pt minus 4pt)|\marg{长度}*)
+\end{bitsyntax}
+
+ \textit{此选项一般不需要用户自行修改。}
+
+ 此选项用于调整算法与正文之间的距离。距离用\href{https://www.overleaf.com/learn/latex/Lengths_in_LaTeX}{长度}表示，例如 |0.5em| 大致是半个字高。默认值更复杂一些，它表示以12点为基准，允许上下浮动4点。
+
+ （学校既无明文规定，也无实例。）
+
+ 此选项目前只支持 |algorithm2e| 宏包的 |algorithm| 环境。
+
+ \textit{请在导言区使用此选项。}
+
+\end{function}
+
+\begin{function}[added=2024-04-30, updated=2024-05-25]{misc/tabularRowSeparation}
+\begin{bitsyntax}[emph={[1]tabularRowSeparation}]
+tabularRowSeparation = (*(1)|\marg{正实数}*)
+\end{bitsyntax}
+
+  \textit{此选项一般不需要用户自行修改。}
+
+  此选项用于调整表格各行之间的距离，允许小数。默认值为1，相当于不调整。
+
+  学校没有明文规定，不过设为1.25更接近本科Word模板实作，设为1.6更接近硕博Word模板实作。
+
+  此选项影响的“表格”具体包括标准 |tabular|、|tabular*| 环境，以及 |tabularx| 和 |longtable| 宏包提供的环境。
+
+  \textit{请在导言区使用此选项。}
 
 \end{function}
 
@@ -1461,7 +1583,10 @@ addTOC = (*<(true)|false>*)
   (*\meta{证明过程}*)
 \end{proof}
 \end{bitsyntax}
+
   一系列预定义的数学环境。具体含义见表~\ref{tab:theorem}。
+
+  其中提供了算法环境 |algo|，但模板也适配了一些更专业的宏包，请参考 \ref{sec:algorithm}。
 \end{function}
 
 \begin{table}[]
@@ -1632,9 +1757,16 @@ addTOC = (*<(true)|false>*)
 
 \textit{通常在「攻读学位期间发表论文与研究成果清单」的 |.bib| 文件中使用。}
 \begin{itemize}
-  \item 在普通模式下，输出作者姓名（由用户在 |info/author| 中配置）。
+  \item 在普通模式下，输出作者姓名。
+
+  （作者姓名由用户在 |info/author| 中配置。）
+
   \item 如果指定了覆盖普通模式下内容，则输出覆盖内容。
+
   \item 在盲审模式下，输出「第n作者」。
+
+  （具体情况：|\Author| 输出中文，如|第一作者|；|\AuthorEn| 输出英文，如 |First Author|。）
+
   \item 如果指定了覆盖盲审模式下内容，则输出覆盖内容。
 \end{itemize}
 \end{function}
@@ -1660,6 +1792,37 @@ addTOC = (*<(true)|false>*)
 \end{function}
 
 \section{常见问题和疑难解答}
+
+\subsection{如何排版算法（伪代码）？} \label{sec:algorithm}
+
+有以下三种互不兼容的方式。
+
+\begin{itemize}
+  \item |algorithm|+X 方式
+
+  引入 |algorithm| 宏包时，要加上选项 |chapter| 才能按学校要求分章编号，示例如下。
+
+\begin{bitsyntax}[emph={[1]chapter}]
+\usepackage[chapter]{algorithm}
+\usepackage{algorithmic} % 也可替换为 algpseudocode 或 algcompatible
+\end{bitsyntax}
+
+  使用示例请参考 \href{https://www.overleaf.com/learn/latex/Algorithms}{Algorithms - Overleaf 文档}。
+
+  \item |algorithm2e| 方式
+
+  引入宏包时，要加上选项 |algochapter| 才能按学校要求分章编号，示例如下。
+
+\begin{bitsyntax}[emph={[1]algochapter}]
+\usepackage[ruled, algochapter]{algorithm2e}
+\end{bitsyntax}
+
+  使用示例请参考 \href{https://www.overleaf.com/learn/latex/Algorithms#The_algorithm2e_package}{Algorithms - Overleaf 文档的 The |algorithm2e| package 一节}。
+
+  \item 使用模板提供的 |algo| 环境
+
+  这是表~\ref{tab:theorem}中的数学环境之一，不额外依赖宏包，但功能有限，基本只支持编号。
+\end{itemize}
 
 \subsection{为什么我的研究生模板开头有间隔的空白页？}
 
@@ -1697,7 +1860,8 @@ addTOC = (*<(true)|false>*)
 因此，用户有两种选择：
 \begin{itemize}
  \item 手动在系统中安装中易字库
- （一般包括 SimSun、SimHei、KaiTi、FangSong 等）。
+ （一般包括 SimSun、SimHei、KaiTi、FangSong 等）。 
+ \textbf{请注意，是 KaiTi 而不是 SimKai。}
  并通过 |\documentclass[...,ctex={fontset=windows}]{bithesis}| 选项
  强制使用中易字库。
  \item 在 Windows 系统下编译最终的 PDF 文件。
