@@ -1,95 +1,155 @@
 # 开发者指南
 
-## 任务管理
+> [!TIP]
+>
+> 本项目采用 [GitHub Projects](https://github.com/BITNP/BIThesis/projects) 进行任务管理。
+> 你可以每次选择其中的一个小的 TODO 进行开发；来帮助项目一点一点前进。
 
-本项目采用 [GitHub Projects](https://github.com/BITNP/BIThesis/projects) 进行任务管理。
-你可以每次选择其中的一个小的 TODO 进行开发；来帮助项目一点一点前进。
+## 本地开发
 
-## 开发命令
+一般开发需求分为三种：
 
-Makefile 主要针对 Linux 和 MacOS 开发者；如果你使用 Windows 开发，可以使用 Git Bash 或 Cygwin，不过偶尔可能需要手动执行 Makefile 中具体的命令。
+- 修改 `templates/` 中某个模板
 
-当然，也欢迎你贡献更通用的开发脚本。
+  例：改进`ref.bib`中的示例，在 `main.tex` 中补充注释。
 
-### 生成 `.cls` 文件
+- 修改 `bithesis*.dtx` 文件
 
-```Bash
-make cls
-```
+  例：添加新命令，更改 `\BITSetup` 选项。
 
-### 生成宏包手册
-
-```Bash
-make doc
-```
-
-### 本地开发
-
-一般开发需求分为三个部分：
-
-- 修改 `bithesis.dtx` 文件。
-- 修改 `templates/` 中某个模板。
 - 修改其他文件。
 
-#### bithesis.dtx 开发流程
+> [!TIP]
+>
+> 运行 justfile（及 Makefile）需要安装 [just](https://just.systems/man/en/pre-built-binaries.html) 和 [fd](https://github.com/sharkdp/fd/#installation)，通常下载可执行文件即可。此外 Windows 开发者若遇到问题，请参考[后文](#Windows)。
 
-1. 如果需求涉及到添加新的命令，可以先在 `templates/` 中进行具体的实现。
-2. 然后，将实现的代码拷贝到 `bithesis.dtx`。
-3. 然后运行 `make copy` 将新的 `*.cls` 更新到 `templates/` 下。
-4. 不要忘记更新 `bithesis.dtx` 中的手册部分，添加相应说明。
-5. 运行 `make doc` 编译手册。
-6. 运行测试，确保你的改动不会影响到其他功能。
-
-#### 修改 `templates/` 中模板的行为
+### 修改 `templates/` 中某个模板
 
 如果改动仅仅涉及某个模板，那么相对简单一些：
 
-1. 直接修改模板中的样式
-2. 进行测试，确保你的改动能够正确编译；并且不会影响到其他效果。
+1. 初次开发前，运行 `just copy`，这会生成 `*.cls` 等并更新到 `templates/` 下。
+2. 编辑模板。
+3. 测试，确保你的改动能够正确编译；并且不会影响到其他效果。
 
-#### 辅助命令
+### 修改 `bithesis*.dtx` 文件
 
-由于我们常常需要实时预览代码编译的效果，而 LaTeX 本身没有提供实时编译的功能。
-因此我们常常需要来回运行 `make copy`、`latexmk` 以达成实时编译的效果。
+1. 编辑 `src/bithesis*.dtx`。
+2. 运行 `just copy`，这会生成新的 `*.cls` 并更新到 `templates/` 下。
+3. 更新文档（`src/bithesis-doc.tex` 以及 `src/bithesis*.dtx` 中的注释），然后运行 `just doc` 编译出手册`src/bithesis.pdf`。
+4. 测试，确保你的改动不会影响到其他功能。
 
-因此 Makefile 里面提供了一些辅助开发的命令（以 `dev-`）开头。
-可以帮助你自动化以上流程。
+> [!TIP]
+>
+> 如果要添加新命令，可以先在 `templates/` 中具体实现，再拷贝到 `bithesis*.dtx`。
 
-或者你可以使用类似 `rg --files | entr make copy` 以及 `rg --files | entr latexmk` 来达到
-「代码修改后立即重新编译」的效果。
+> [!NOTE]
+>
+> 文档有两部分。
+>
+> - `bithesis-doc.tex`面向最终使用者，对应手册`bithesis.pdf`大部分内容。
+> - `bithesis*.dtx`中的注释面向开发者。
+>
+>   <details>
+>   <summary>注释中为何有 LaTeX 代码？</summary>
+>
+>   `bithesis*.dtx`最顶层的注释包含 LaTeX 代码，可输出为手册结尾「实现细节」一节；不过默认不输出，一般也无需单独检查输出结果。
+>
+>   如需输出，请如下编辑`src/bithesis.dtx`（`\jobname`的值是`bithesis`，`\filename`的值是`bithesis.dtx`），然后照常编译手册。
+>
+>   ```diff
+>    \begin{document}
+>   -  \DocInput{\jobname-doc.tex}
+>   +  \DocInput{\jobname-doc.tex,\filename,bithesis-thesis.dtx,bithesis-thesis-exports.dtx,bithesis-report.dtx,bithesis-beamer.dtx,bithesis-doc-style.dtx,bithesis-finale.dtx}
+>   ```
+>
+>   相关功能的文档位于 [DocStrip](https://texdoc.org/serve/docstrip/0) 和 [l3doc](https://texdoc.org/serve/l3doc/0)。
+>   </details>
+
+## TeX Live 版本
+
+- 模板：需要保证自 2021 起的 TeX Live 都能使用
+
+- 文档：只需保证最新版 TeX Live（当前为 2025/2026）能编译
+
+建议开发时使用最新版 TeX Live，通过 pull request 的 CI 保证支持旧版。
+
+<details><summary>建议开发使用最新版 TeX Live 的原因</summary>
+
+- 目前遇到的兼容性问题主要是不兼容新版，而非不兼容旧版。
+
+  最近 LaTeX 团队为了改进 PDF 可访问性，修改很多宏的定义，导致不兼容。
+
+- 目前文档只能使用最新版 TeX Live 编译。
+
+  - `bithesis-doc.tex`使用了 [lt3luabridge](https://www.ctan.org/pkg/lt3luabridge) 提供的`\luabridge_now:n`，该命令在 2022-06-26 才引入。
+  - `handbook/*`使用了 [cleveref](https://www.ctan.org/pkg/cleveref)，该包[在特定版本的 TeX Live 2024 与 ctex 不兼容](https://github.com/CTeX-org/ctex-kit/issues/725)。
+  - TeX Live 2023 或更早时，某些包声明的依赖不全，导致单纯安装[`tl_packages`](./.github/tl_packages)列出的包不够，难以测试。
+
+</details>
 
 ## 参考资料
 
-- 本项目 LaTeX3，因此可以参考的手册包括 expl3 的文档。
-- [fduthesis 项目代码](https://github.com/stone-zeng/fduthesis)有很多最佳实践，可以参考。
-- 样式部分，应该参考研究生院和教务部的相关文件和通知。
+- 本项目采用 LaTeX3，可以参考 [LaTeX3: Programming in LaTeX with Ease](https://www.alanshawn.com/tech/2020/10/04/latex3-tutorial.html)、[expl3 的文档](https://www.latex-project.org/help/documentation/)等。
+- 关于模板，[fduthesis 项目代码](https://github.com/stone-zeng/fduthesis)有很多最佳实践，可以参考。
+- 样式部分则应参考[研究生院](https://grd.bit.edu.cn/xwgz/xwgz2/wjxz_xwgz/)和教务部的相关文件和通知。
 
-## 单元测试和回归测试
+## justfile 的进一步介绍
 
-运行 `make test` 将对所有的模板进行编译测试（同样被用于 GitHub Actions）。
+运行`just --list`可查看所有命令。
 
-运行 `make regression-test` 进行回归测试，该命令将比较目前已发布的最新版本和本地版本生成的 PDF 的差异。
+```shell
+$ just --list
+Available recipes:
+    list                  # List available recipes
+    …
+
+    [build]
+    copy                  # Copy necessary files to templates/*/ and relevant directories
+    doc                   # Build bithesis.pdf
+    …
+
+    [dev]
+    regression-test *ARGS # Run regression tests (run with `--help` for help)
+    …
+
+    [release]
+    pkg                   # Build bithesis.zip for submission to CTAN (mainly for CI)
+    …
+```
+
+### Windows
+
+justfile 主要针对 Linux 和 macOS 开发者；Windows 开发者要确保至少有：
+
+- GNU make——可按 [ScoopInstaller/Main: `make.json`](https://github.com/ScoopInstaller/Main/blob/master/bucket/make.json) 中的 `url` 下载。
+- GNU coreutils——可使用内置了 coreutils 的 Git Bash 或 Cygwin，或者[安装 uutils-coreutils](https://uutils.github.io/coreutils/docs/installation.html#windows)。
+
+当然，也欢迎你贡献更通用的开发脚本。
+
+### 辅助命令
+
+我们常常需要实时预览代码编译的效果，而 LaTeX 本身没有提供实时编译的功能，导致我们要来回运行 `just copy`、`latexmk`。
+
+其实可以使用类似 `rg --files | entr just copy` 以及 `rg --files | entr latexmk` 来达到「代码修改后立即重新编译」的效果。
+
+（这些命令未必适用于 Windows，可能要手动用 [watchexec](https://watchexec.github.io/) 等替代。）
+
+### 单元测试和回归测试
+
+运行 `just test` 将对所有的模板进行编译测试（同样被用于 GitHub Actions）。
+
+运行 `just regression-test` 进行回归测试，该命令将比较目前已发布的最新版本和本地版本生成的 PDF 的差异。更多使用方式见 `just regression-test --help`。
+
 使用前请确保已经安装下面这些依赖。
 
-- [Zsh](https://github.com/ohmyzsh/ohmyzsh/wiki/Installing-ZSH)（POSIX）或 [PowerShell 7](https://learn.microsoft.com/zh-cn/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.3)（Windows）
-- [diff-pdf](https://vslavik.github.io/diff-pdf/)
-- [jq](https://jqlang.github.io/jq/)（仅用 Zsh 时需要）
+- [uv](https://docs.astral.sh/uv/)（或自己管理 python 环境）
+- [GitHub CLI](https://cli.github.com/)（或手动下载文件）
+- [vslavik/diff-pdf](https://vslavik.github.io/diff-pdf/) 或 [rubypdf/diffpdf](https://soft.rubypdf.com/software/diffpdf)
 
-## 打包
+### 打包
 
-- `make overleaf version=X.X.X` 可以生成上传 overleaf 所需要的 zip 文件。
-- `make pkg` 可以生成上传 CTAN 所需要的 zip 文件。
-- `make grad version=X.X.X` 可以生成用作研究生院官网附件的 zip 文件。
-
-## 上传 Overleaf 与更新
-
-首先运行 `make overleaf` 打包文件。
-
-1. 打开 Overleaf，点击左上角 `New Projects > Upload Projects` ，然后上传 zip 文件。
-2. 点击 `Menu > Compiler` 选择 `XeLaTeX`，然后重新编译。
-3. 修改项目名称，以便于区分。（我一般加上 `BIThesis-`）
-4. 点击 `Share > Turn on link sharing`，复制 read 权限的链接。
-5. 在 [`BIThesis-wiki` 项目的 `wiki/guide/preface.md`](https://github.com/BITNP/BIThesis-wiki/blob/main/wiki/guide/preface.md) 中，更新链接。
+- `just pkg` 可以生成上传 CTAN 所需要的 zip 文件。若已有手册而不想重新编译，可 `just pkg-only`。（同样被用于 GitHub Actions）
+- `just grad X.X.X` 可以生成用作研究生院官网附件的 zip 文件。
 
 ## Release 工作流
 
@@ -97,4 +157,42 @@ make doc
 
 版本号：参考 [Semantic Versioning 2.0.0 | Semantic Versioning](https://semver.org/) 。
 
+### 正常流程
+
+如果一切正常，那么发布已基本自动，只需手动触发。具体流程如下，注意正式版（如 v3.8.9）和测试版（如 v3.8.9-beta.2）略有不同。
+
+1. （仅限正式版）选择 issue 模板，[创建 Release Tracker](https://github.com/BITNP/BIThesis/issues/new?template=release-tracker.md)。
+
+2. （仅限正式版）提升`src/bithesis.dtx`版本号到最新。
+
+   该文件有两处不同格式的版本号和日期，可先运行`just update-version`确定修改位置、格式、日期，再提升版本号。
+
+3. 前往 [New release · BITNP/BIThesis](https://github.com/BITNP/BIThesis/releases/new) 发布新 release。
+
+   - tag 选择 create new tag，注意必须前缀`v`。
+   - 正式版的 release title 必须形如“v3.8.9 (Public Release)”，因为会用于[校内镜像站](https://mirrors.bit.edu.cn/github-release/BITNP/BIThesis/)的文件夹名；测试版的 release title 可自由发挥，但务必注明是测试版。
+   - release notes 暂时留空。此时即使填写内容，稍后也会被覆盖。
+   - （仅限测试版）勾选 set as a pre-release。
+   - （仅限正式版）保持勾选 set as the latest release。[Overleaf/TeXPage 按钮](https://bithesis.bitnp.net/guide/preface.html#q-bithesis-都包含哪些模板)会按“latest”创建项目，必须勾选才会更新。
+
+4. 前往 [Release · Workflow runs · BITNP/BIThesis](https://github.com/BITNP/BIThesis/actions/workflows/release.yml)，观察运行过程。
+
+   若是正式版，此步应该会发起 pull request 更新 [CHANGELOG 文件](./CHANGELOG.md)并自动合并，还会利用 [CTAN API](https://www.ctan.org/help/submit) 提交更新。
+
+   无论什么版本，此步应该都会向刚才的 release 上传附件并填写 release notes。
+
+5. （可选）待上一步运行完毕，可再编辑 release note，在开头简要补充。
+
+   若补充的内容比较重要，应备份到[更新说明 | BIThesis](https://bithesis.bitnp.net/news/)。
+
+6. （仅限正式版）CTAN 团队通常会在一天内向 BITNP 发送确认邮件，有时还需进一步沟通。
+
+尽量在 UTC+8 同一天的9时至23时完成第2至4步，不然日期容易跨天，给未来调试增加困难。
+
+### 备用流程
+
+如果发布过程出错，那么可能需要手动完成某些步骤，参考下图完整工作流。
+
 ![Release Workflow](./assets/release_workflow.png)
+
+- Overleaf 链接已利用 [`overleaf.com/docs` API](https://www.overleaf.com/devs) 自动指向最新发布版，不再需要手动更新。

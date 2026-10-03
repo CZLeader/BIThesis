@@ -4,7 +4,8 @@
 
 此文件夹中包含了北京理工大学毕业设计（论文）的全部内容，有关模板的使用方法更为详细的介绍，请参考：[bithesis 使用手册][manual]。
 
-> :warning: 重要提示：建议 macOS 用户使用最新版的 [texlive 2023](https://www.tug.org/mactex/mactex-download.html)，否则可能会遇到参考文献被查重的情况。详见 https://github.com/BITNP/BIThesis/issues/326
+> [!WARNING]
+> 重要提示：建议 macOS 用户更新到 [TeX Live / MacTeX 2023 或更新版本](https://www.tug.org/mactex/mactex-download.html)，否则[参考文献等可能会被错误查重](https://bithesis.bitnp.net/faq/false-duplicate.html)。
 
 ## 特性
 
@@ -20,23 +21,26 @@
 .
 ├── README.md
 ├── bithesis.pdf # bithesis 使用手册
-├── chapters
+├── STXIHEI.TTF
+├── main.tex
+├── main.pdf
+├── chapters/
 │   ├── 0_abstract.tex
 │   ├── 1_chapter1.tex
 │   └── 2_chapter2.tex
-├── images
+├── images/
 │   ├── bit_logo.png
-│   └── header.png
-├── main.pdf
-├── main.tex
-└── misc
-    ├── 1_originality.tex
+│   └── header.pdf
+└── misc/
+    ├── 1_originality.pdf # 原创性声明，盲审结束后替换，详见 main.tex 中注释
     ├── 2_conclusion.tex
     ├── 3_reference.tex
     ├── 4_appendix.tex
     ├── 5_acknowledgements.tex
     └── ref.bib
 ```
+
+其中`STXIHEI.TTF`是华文细黑字体，用于封面论文题目。考虑到部分系统未预装此字体，BIThesis 将它打包进了模板，保留在`main.tex`旁边即可让 LaTeX 调用。
 
 ## 编译方式
 

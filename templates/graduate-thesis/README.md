@@ -4,7 +4,8 @@
 
 此文件夹中包含了北京理工大学研究生学位论文的全部内容，有关模板的使用方法更为详细的介绍，请参考：[bithesis 使用手册][manual]。
 
-> :warning: 重要提示：建议 macOS 用户使用最新版的 [texlive 2023](https://www.tug.org/mactex/mactex-download.html)，否则可能会遇到参考文献被查重的情况。详见 https://github.com/BITNP/BIThesis/issues/326
+> [!WARNING]
+> 重要提示：建议 macOS 用户更新到 [TeX Live / MacTeX 2023 或更新版本](https://www.tug.org/mactex/mactex-download.html)，否则[参考文献等可能会被错误查重](https://bithesis.bitnp.net/faq/false-duplicate.html)。
 
 ## 特性
 
@@ -19,27 +20,28 @@
 
 ```sh
 .
-├── README.md # 相关信息
+├── README.md
 ├── bithesis.pdf # bithesis 使用手册
-├── chapters
+├── main.tex
+├── main.pdf
+├── chapters/
 │   ├── abstract.tex
 │   ├── chapter1.tex
 │   └── chapter2.tex
-├── figures
+├── figures/
 │   └── figure1.png
-├── main.pdf
-├── main.tex
-├── misc
+├── misc/
 │   ├── 0_symbols.tex
 │   ├── 1_conclusion.tex
 │   ├── 2_reference.tex
 │   ├── 3_appendices.tex
 │   ├── 4_pub.tex
-│   ├── 5_acknowledgements.tex
-│   └── 6_resume.tex
-└── reference 
+│   ├── 5_resume.tex
+│   ├── acknowledgements.tex
+│   └── icon_{academic,professional}.jpg
+└── reference/
     ├── main.bib # 参考文献
-    └── pub.bib # 个人成果清单
+    └── pub.bib # 成果清单
 ```
 
 ## 编译方式
@@ -68,7 +70,7 @@ latexmk
 
 ## 排版参考
 
-- 《北京理工大学研究生学位毕业论文排版规范》
+- 研函〔2026〕024 号《北京理工大学研究生学位论文撰写规范》
 
 [^1]: 关于如何升级模板的版本，请参考[手册][manual]中「版本号与升级」这一章节内容。
 

@@ -1,35 +1,106 @@
 name: Test
 
-on: 
+on:
   push:
     branches:
       - main
   pull_request:
     branches:
       - main
+  merge_group:
+    types: [checks_requested]
 
 jobs:
-  build_latex:
+  build-latex:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        tl-version: [2021, 2022, 2023, 2024, 2025, 2026]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v7
+      - uses: TeX-Live/setup-texlive-action@v4
+        with:
+          version: ${{ matrix.tl-version }}
+          package-file: |
+            .github/tl_packages
+            ${{ matrix.tl-version < 2024 && '.github/tl_packages_compat' || '' }}
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: fd-find, ripgrep, just
+
+      - name: Restore Microsoft fonts cache
+        id: microsoft-fonts
+        uses: actions/cache@v6
+        with:
+          path: /usr/share/fonts/truetype/msttcorefonts
+          key: microsoft-fonts
+      - name: Install Microsoft fonts
+        if: steps.microsoft-fonts.outputs.cache-hit != 'true'
+        run: |
+          echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | sudo debconf-set-selections
+          sudo apt install ttf-mscorefonts-installer
+          fc-cache --force
+
+      - name: Setup TeX Live fonts
+        run: |
+          mkdir -p ~/.fonts
+          ln -s $(kpsewhich -var-value=TEXMFDIST)/fonts/ ~/.fonts/texmf-dist-fonts
+          fc-cache
+
+      - run: ${{ matrix.tl-version < 2025 && 'TEST_SKIP_DOC="1"' || '' }} just test
+
+  check-latex:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: xu-cheng/texlive-action/full@v1
+      - uses: actions/checkout@v7
+      - uses: TeX-Live/setup-texlive-action@v4
         with:
-          run: |
-            apk add make msttcorefonts-installer fontconfig
-            update-ms-fonts
-            fc-cache -f
-            make test
+          version: latest
+          packages: |
+            scheme-minimal
+            xetex
+            expltools
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: fd-find, just
+      - run: just cls
+      - run: just check
 
   check_typos:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
       - name: Check spelling of bithesis.dtx
         uses: crate-ci/typos@master
 
-  markdown-link-check:
+  check-links:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
-    - uses: gaurav-nelson/github-action-markdown-link-check@v1
+      - uses: actions/checkout@v7
+      - name: Restore the cache
+        uses: actions/cache@v6
+        with:
+          path: .lycheecache
+          key: lychee-${{ github.sha }}
+          restore-keys: lychee-
+      - name: Check links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --verbose
+            --no-progress
+            --config .github/lychee.toml
+            .
+
+  check-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: pipx install ruff
+      - name: Ruff check
+        run: |
+          cd scripts && ruff check --output-format=github .
+      - name: Ruff format
+        run: |
+          cd scripts && ruff format --check --diff

@@ -1,9 +1,11 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "*.*.*"
+  release:
+    types:
+      - published
+  workflow_dispatch:
+    # Allow testing the release process without publishing a real release.
 
 jobs:
   build:
@@ -11,26 +13,62 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: xu-cheng/texlive-action/full@v1
+      - uses: actions/checkout@v7
         with:
-          run: |
-            apk add make msttcorefonts-installer fontconfig
-            update-ms-fonts
-            fc-cache -f
-            make doc
+          # Fetch more history for workflow_dispatch, required by `just update-version`.
+          fetch-depth: ${{ github.event_name == 'workflow_dispatch' && 100 || 1 }}
+          fetch-tags: ${{ github.event_name == 'workflow_dispatch' }}
+      - uses: TeX-Live/setup-texlive-action@v4
+        with:
+          version: 2025
+          package-file: |
+            .github/tl_packages
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: fd-find, just
+
+      - name: Restore Microsoft fonts cache
+        id: microsoft-fonts
+        uses: actions/cache@v6
+        with:
+          path: /usr/share/fonts/truetype/msttcorefonts
+          key: microsoft-fonts
+      - name: Install Microsoft fonts
+        if: steps.microsoft-fonts.outputs.cache-hit != 'true'
+        run: |
+          echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | sudo debconf-set-selections
+          sudo apt install ttf-mscorefonts-installer
+          fc-cache --force
+
+      - name: Setup TeX Live fonts
+        run: |
+          mkdir -p ~/.fonts
+          ln -s $(kpsewhich -var-value=TEXMFDIST)/fonts/ ~/.fonts/texmf-dist-fonts
+          fc-cache
+
+      - name: Update version if prerelease
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event.release.prerelease }}
+        # 目前发布正式版时，会手动提升版本号
+        run: just update-version
+
+      - run: just doc handbooks
+
       - name: Upload bithesis.pdf for later usage.
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         with:
           name: bithesis
-          path: bithesis.pdf
+          path: src/bithesis.pdf
+      - name: Upload handbooks for later usage.
+        uses: actions/upload-artifact@v7
+        with:
+          name: handbooks
+          path: "handbook/*.pdf"
       - name: Upload *.cls for later usage.
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         with:
           name: cls
-          path: "*.cls"
+          path: "src/*.cls"
 
-    
   publish_templates:
     name: Publish ${{ matrix.template }}
     runs-on: ubuntu-latest
@@ -38,70 +76,254 @@ jobs:
 
     strategy:
       matrix:
-        template: [graduate-thesis, undergraduate-thesis, lab-report, paper-translation, presentation-slide, undergraduate-thesis-en, reading-report]
+        template:
+          [
+            graduate-thesis,
+            undergraduate-thesis,
+            lab-report,
+            paper-translation,
+            presentation-slide,
+            undergraduate-thesis-en,
+            reading-report,
+          ]
         include:
           - template: graduate-thesis
-            cls: bithesis
+            label: 硕博·学位论文
           - template: undergraduate-thesis
-            cls: bithesis
+            label: 本科·毕业设计·论文
           - template: lab-report
-            cls: bitreport
+            label: 实验报告
           - template: paper-translation
-            cls: bithesis
+            label: 本科·毕业设计·外文翻译
           - template: presentation-slide
-            cls: bitbeamer
+            label: 演示文档
           - template: undergraduate-thesis-en
-            cls: bithesis
+            label: 本科·毕业设计·论文（全英文专业）
           - template: reading-report
-            cls: bithesis
+            label: 本科·读书报告
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: fd-find, just
       - name: Download bithesis.pdf
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v8
         with:
           name: bithesis
+          path: src
       - name: Download `*.cls`
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v8
         with:
           name: cls
+          path: src
       - name: Copy manual to the template folder.
         run: |
-          mv bithesis.pdf ./templates/${{ matrix.template }}
-          mv ${{ matrix.cls }}.cls ./templates/${{ matrix.template }}
+          mv src/bithesis.pdf ./templates/${{ matrix.template }}
+          just copy-only
       - name: Install zip
         uses: montudor/action-zip@v1
       - name: Zip files under ./${{ matrix.template }}
         run: zip -qq -r ./${{ matrix.template }}.zip ./${{ matrix.template }}
         working-directory: ./templates
       - name: Upload ${{ matrix.template }}.zip to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./templates/${{ matrix.template }}.zip
-          asset_name: ${{ matrix.template }}.zip
-          tag: ${{ github.ref }}
+        if: ${{ github.event_name == 'release' }}
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} \
+            "./templates/${{ matrix.template }}.zip#模板包·${{ matrix.label }} — ${{ matrix.template }}.zip"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    
   publish_cls:
-    name: Publish ${{ matrix.cls }}
+    name: Publish ${{ matrix.cls.name }}.cls
     runs-on: ubuntu-latest
     needs: build
 
     strategy:
       matrix:
-        cls: [bithesis, bitreport, bitbeamer]
+        cls:
+          - name: bithesis
+            label: 论文
+          - name: bitreport
+            label: 实验报告
+          - name: bitbeamer
+            label: 幻灯片
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
       - name: Download *.cls
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v8
         with:
           name: cls
-      - name: Upload ${{ matrix.cls }}.cls to release
-        uses: svenstaro/upload-release-action@v2
+          path: src
+      - name: Upload ${{ matrix.cls.name }}.cls to release
+        if: ${{ github.event_name == 'release' }}
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} \
+            "src/${{ matrix.cls.name }}.cls#文档类·${{ matrix.cls.label }} — ${{ matrix.cls.name }}.cls（用于升级替换）"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release_notes:
+    name: Populate release notes with latest changelog and PDFs
+    runs-on: ubuntu-latest
+    # Make sure it's the last job.
+    needs: [build, publish_cls, publish_templates]
+    outputs:
+      release_body: ${{ steps.git-cliff.outputs.content }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
         with:
+          fetch-depth: 0
+
+      - name: Generate a changelog
+        uses: orhun/git-cliff-action@v4
+        id: git-cliff
+        with:
+          config: cliff.toml
+          # Partially override cliff.toml to generate better release notes.
+          # - For public releases, show changes since the last _public_ release.
+          # - For pre-releases, show changes since the last release (either public or pre-release).
+          # - For testing (workflow_dispatch), show changes not belonging to any release.
+          args: >-
+            -vv
+            --strip header
+            ${{ github.event_name == 'release' && '--current' || '--unreleased' }}
+            ${{ github.event_name == 'release' && (github.event.release.prerelease && '--ignore-tags ""' || '--tag-pattern ''^v\d+\.\d+\.\d+$''') }}
+        env:
+          OUTPUT: CHANGES.md
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Write release notes to the job summary
+        run: |
+          cat CHANGES.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/checkout@v7
+
+      - name: Download bithesis.pdf
+        uses: actions/download-artifact@v8
+        with:
+          name: bithesis
+          path: src
+      - name: Upload bithesis.pdf and changelog
+        uses: svenstaro/upload-release-action@v2
+        if: ${{ github.event_name == 'release' }}
+        with:
+          file: src/bithesis.pdf
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ matrix.cls }}.cls
-          asset_name: ${{ matrix.cls }}.cls
           tag: ${{ github.ref }}
+          overwrite: true
+          body: |
+            > [!TIP]
+            > 若是初次使用，可先参考**快速使用指南**（[本科][undergraduate-handbook]／[硕博][graduate-handbook]）或者 [Wiki 网站](https://bithesis.bitnp.net/)。有需要再进一步参考[详细配置手册`bithesis.pdf`][bithesis-pdf]。
+
+            [undergraduate-handbook]: ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/undergraduate-handbook.pdf
+            [graduate-handbook]: ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/graduate-handbook.pdf
+            [bithesis-pdf]: ${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.event.release.tag_name }}/bithesis.pdf
+
+            ${{ steps.git-cliff.outputs.content }}
+
+      - name: Download handbooks
+        uses: actions/download-artifact@v8
+        with:
+          name: handbooks
+          path: handbook
+      - name: Upload handbooks
+        if: ${{ github.event_name == 'release' }}
+        run: |
+          gh release upload ${{ github.event.release.tag_name }} \
+            "handbook/undergraduate-handbook.pdf#快速使用指南·本科"
+          gh release upload ${{ github.event.release.tag_name }} \
+            "handbook/graduate-handbook.pdf#快速使用指南·硕博"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  upload_to_ctan:
+    name: Upload to CTAN
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v7
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just
+      - name: Download bithesis.pdf
+        uses: actions/download-artifact@v8
+        with:
+          name: bithesis
+          path: src
+      - name: Download handbooks
+        uses: actions/download-artifact@v8
+        with:
+          name: handbooks
+          path: handbook
+      - run: just pkg-only
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ctan-pkg
+          path: target/bithesis.zip
+      - name: Determine version
+        id: version
+        run: |
+          version=${{ github.event.release.tag_name }}
+          echo "number=$(echo $version | sed 's/^v//')" >> "$GITHUB_OUTPUT"
+          echo "date=$(date '+%Y-%m-%d')" >> "$GITHUB_OUTPUT"
+      - name: Upload to CTAN
+        uses: paolobrasolin/ctan-submit-action@v1
+        if: ${{ github.event_name == 'release' && ! github.event.release.prerelease }}
+        with:
+          action: upload
+          file_path: target/bithesis.zip
+          fields: |
+            update: "true"
+            pkg: bithesis
+            version: ${{ steps.version.outputs.number }} ${{ steps.version.outputs.date }}
+            author: Feng Kaiyu
+            email: bithesis@bitnp.net
+            uploader: Feng Kaiyu
+      - name: Report
+        if: ${{ github.event_name == 'release' && ! github.event.release.prerelease }}
+        run: >
+          echo "🎉 Successfully upload
+          ${{ steps.version.outputs.number }} (${{ steps.version.outputs.date }})
+          to [CTAN](https://www.ctan.org/pkg/bithesis)." >> "$GITHUB_STEP_SUMMARY"
+
+  changelog:
+    name: Update CHANGELOG
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'release' && ! github.event.release.prerelease }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Update CHANGELOG
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --verbose
+        env:
+          OUTPUT: CHANGELOG.md
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create a PR
+        # Changes must be made through the merge queue, therefore a PR is necessary.
+        id: pr
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: Update CHANGELOG for ${{ github.event.release.tag_name }}
+          title: Update CHANGELOG for ${{ github.event.release.tag_name }}
+          # Ignore binaries installed by git-cliff-action.
+          add-paths: CHANGELOG.md
+
+      - name: Report status
+        run: |
+          echo "[Pull request #${{ steps.pr.outputs.pull-request-number }}](${{ steps.pr.outputs.pull-request-url }}) is created to update CHANGELOG." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Merge the PR
+        run: |
+          gh pr merge ${{ steps.pr.outputs.pull-request-number }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
